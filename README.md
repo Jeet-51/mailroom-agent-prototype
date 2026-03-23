@@ -82,8 +82,6 @@ Runs Extractor and Action agents across all emails in parallel using `asyncio.ga
 
 <img width="1881" height="935" alt="image" src="https://github.com/user-attachments/assets/abb1201f-46b8-4d1c-bfe5-0f531e6ebaa5" />
 
-![Mock Emails Demo](<img width="1881" height="935" alt="image" src="https://github.com/user-attachments/assets/a154bef1-2404-41a2-bd04-9eabbe748a9b" />)
-
 Act Today 6, 6 HIGH urgency. All 6 flagged correctly.
 
 The Rivera case is the clearest example of implicit reasoning. Surgery date was March 3, 2024. No deadline is mentioned anywhere in the email. The agent calculated the 2-year statute of limitations expiry on its own and flagged it as Act Today.
@@ -91,8 +89,7 @@ The Rivera case is the clearest example of implicit reasoning. Surgery date was 
 ---
 
 ### Real Gmail - Live Inbox
-![image.png](attachment:f730bd37-30a3-4058-a2a0-d1e562762184:image.png)
-![Real Gmail Demo](screenshots/real_gmail.png)
+<img width="1893" height="930" alt="image" src="https://github.com/user-attachments/assets/e3230d0d-9786-47f3-ac55-ff0f134b87cd" />
 
 Gmail OAuth connected. Agent fetched the real inbox, filtered marketing emails into Monitor, and surfaced Act Today items including the Motion for Summary Judgment with FRCP Rule 56 reasoning and the 21-day calculation shown inline.
 
