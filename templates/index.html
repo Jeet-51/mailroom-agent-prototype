@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Mailroom Agent</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>Legal Mailroom</h1>
+        <p>Extracts deadlines · Classifies urgency · Creates to-dos</p>
+    </div>
+    <div class="header-meta">
+        Claude Agent SDK &nbsp;·&nbsp; Skills + Agents + Tools
+    </div>
+</header>
+
+<div class="controls">
+    <button class="btn-run" id="runBtn" onclick="runAgent()">▶ Run Agent</button>
+
+    <div class="source-toggle">
+        <button class="btn-source active" id="btnMock"  onclick="setSource('mock')">Mock Emails</button>
+        <button class="btn-source"        id="btnGmail" onclick="setSource('gmail')">Real Gmail</button>
+    </div>
+
+    <div class="toggle-wrap" id="hoursWrap" style="display:none;">
+        <label style="font-size:13px;color:#555;">Last</label>
+        <select id="hoursSelect" style="padding:4px 8px; border-radius:4px; border:1px solid #ccc; font-size:13px;">
+            <option value="1">1 hr</option>
+            <option value="4" selected>4 hrs</option>
+            <option value="8">8 hrs</option>
+            <option value="24">24 hrs</option>
+        </select>
+    </div>
+
+    <div id="gmailStatus" style="margin-left:auto;"></div>
+</div>
+
+<div class="main">
+    <div class="status" id="status"></div>
+    <div id="statsBar" class="stats-bar" style="display:none;"></div>
+    <div id="todoList"></div>
+</div>
+
+<script>
+    let useGmail = false;
+
+    function setSource(src) {
+        useGmail = (src === 'gmail');
+        document.getElementById('btnMock').classList.toggle('active', !useGmail);
+        document.getElementById('btnGmail').classList.toggle('active', useGmail);
+        document.getElementById('hoursWrap').style.display = useGmail ? 'flex' : 'none';
+        if (useGmail) checkGmailStatus();
+    }
+
+    async function checkGmailStatus() {
+        const res  = await fetch('/auth/status');
+        const data = await res.json();
+        const el   = document.getElementById('gmailStatus');
+        if (data.connected) {
+            el.innerHTML = `<span class="gmail-badge connected">✓ Gmail connected</span>
+                            <button class="btn-disconnect" onclick="disconnect()">Disconnect</button>`;
+        } else {
+            el.innerHTML = `<a href="/auth/login" class="btn-connect-gmail">Connect Gmail →</a>`;
+        }
+    }
+
+    async function disconnect() {
+        await fetch('/auth/disconnect', { method: 'POST' });
+        checkGmailStatus();
+    }
+
+    // Check URL param on page load
+    window.addEventListener('load', () => {
+        if (location.search.includes('gmail=connected')) {
+            setSource('gmail');
+            history.replaceState({}, '', '/');
+        }
+    });
+
+    const PRIORITY_ORDER = { "Act Today": 0, "This Week": 1, "Monitor": 2 };
+    const URGENCY_ORDER  = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+
+    async function runAgent() {
+        const btn    = document.getElementById('runBtn');
+        const status = document.getElementById('status');
+        const list   = document.getElementById('todoList');
+        const stats  = document.getElementById('statsBar');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loader"></span> Running...';
+        status.innerHTML = '<span class="loader"></span> Pipeline running — Extractor and Action agents processing in parallel...';
+        list.innerHTML = '';
+        stats.style.display = 'none';
+
+        try {
+            const hours = parseInt(document.getElementById('hoursSelect').value);
+        const res  = await fetch('/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ use_gmail: useGmail, hours })
+            });
+            const data = await res.json();
+            const todos = (data.todos || [])
+                .filter(t => !t.error)
+                .sort((a, b) => {
+                    const pd = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+                    if (pd !== 0) return pd;
+                    return URGENCY_ORDER[a.urgency] - URGENCY_ORDER[b.urgency];
+                });
+
+            const errors = (data.todos || []).filter(t => t.error);
+
+            status.innerHTML = `Pipeline complete &nbsp;·&nbsp; <strong>${todos.length} to-dos</strong> created`;
+            renderStats(todos, stats);
+            renderList(todos, errors, list);
+
+        } catch (err) {
+            status.innerHTML = `❌ Error: ${err.message}`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '▶ Run Agent';
+        }
+    }
+
+    function renderStats(todos, bar) {
+        const actToday = todos.filter(t => t.priority === 'Act Today').length;
+        const thisWeek = todos.filter(t => t.priority === 'This Week').length;
+        const monitor  = todos.filter(t => t.priority === 'Monitor').length;
+        const high = todos.filter(t => t.urgency === 'HIGH').length;
+        bar.innerHTML = `
+            <div class="stat-chip stat-p0">Act Today &nbsp;<strong>${actToday}</strong></div>
+            <div class="stat-chip stat-p1">This Week &nbsp;<strong>${thisWeek}</strong></div>
+            <div class="stat-chip stat-p2">Monitor &nbsp;<strong>${monitor}</strong></div>
+            <div class="stat-divider"></div>
+            <div class="stat-chip stat-high">${high} HIGH urgency</div>
+        `;
+        bar.style.display = 'flex';
+    }
+
+    function renderList(todos, errors, container) {
+        const GROUPS = ["Act Today", "This Week", "Monitor"];
+        const groups = { "Act Today": [], "This Week": [], "Monitor": [] };
+        todos.forEach(t => {
+            const p = groups[t.priority] ? t.priority : "Monitor";
+            groups[p].push(t);
+        });
+
+        const labels = {
+            "Act Today": "🔴 Act Today",
+            "This Week": "🟡 This Week",
+            "Monitor":   "🟢 Monitor",
+        };
+        const collapsed = { "Act Today": false, "This Week": false, "Monitor": true };
+
+        let html = '';
+        for (const priority of GROUPS) {
+            const items = groups[priority];
+            if (!items.length) continue;
+            const isCollapsed = collapsed[priority];
+            const safeId = priority.replace(/ /g, '-');
+            html += `
+            <div class="group">
+                <div class="group-header" onclick="toggleGroup('${safeId}')" style="cursor:pointer;">
+                    <span class="group-chevron" id="gchev-${safeId}" style="transform:${isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)'}">›</span>
+                    <span class="group-label">${labels[priority]}</span>
+                    <span class="group-count">${items.length}</span>
+                </div>
+                <div class="group-rows" id="group-${safeId}" style="display:${isCollapsed ? 'none' : 'block'}">
+                    ${items.map((todo, i) => renderRow(todo, `${safeId}-${i}`)).join('')}
+                </div>
+            </div>`;
+        }
+
+        if (errors.length) {
+            html += `<div class="group">
+                <div class="group-header"><span class="group-label">⚠ Errors</span></div>
+                <div class="group-rows">
+                    ${errors.map(e => `<div class="row-error">${e.email_id}: ${e.error}</div>`).join('')}
+                </div>
+            </div>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    function renderRow(todo, uid) {
+        const hasReasoning = todo.implicit_reasoning &&
+            todo.implicit_reasoning !== 'null' &&
+            todo.implicit_reasoning !== 'None' &&
+            todo.implicit_reasoning.trim() !== '';
+
+        const steps = (todo.action_steps || [])
+            .map((s, i) => `<div class="detail-step"><span class="step-num">${i+1}</span><span>${s}</span></div>`)
+            .join('');
+
+        const dueDate = todo.due_date && todo.due_date !== 'null' && todo.due_date !== 'None'
+            ? `<span class="row-date">📅 ${todo.due_date}</span>` : '';
+
+        const assignee = todo.assigned_to && todo.assigned_to !== 'null' && todo.assigned_to !== 'None'
+            ? `<span class="row-assignee">👤 ${todo.assigned_to}</span>` : '';
+
+        return `
+        <div class="todo-row" onclick="toggleDetail('${uid}')">
+            <div class="row-main">
+                <span class="row-chevron" id="chev-${uid}">›</span>
+                <span class="badge badge-${todo.deadline_type}">${todo.deadline_type}</span>
+                <span class="badge badge-${todo.urgency}">${todo.urgency}</span>
+                <span class="row-title">${todo.todo_title || 'Untitled'}</span>
+                <span class="row-meta">
+                    ${dueDate}
+                    ${assignee}
+                </span>
+            </div>
+            <div class="row-summary">${todo.summary || ''}</div>
+            <div class="todo-detail" id="detail-${uid}" style="display:none;">
+                ${hasReasoning ? `
+                <div class="detail-reasoning">
+                    <span class="reasoning-label">⚖️ Legal Rule Applied</span>
+                    ${todo.implicit_reasoning}
+                </div>` : ''}
+                <div class="detail-steps">${steps}</div>
+            </div>
+        </div>`;
+    }
+
+    function toggleGroup(safeId) {
+        const rows = document.getElementById(`group-${safeId}`);
+        const chev = document.getElementById(`gchev-${safeId}`);
+        const open = rows.style.display === 'none';
+        rows.style.display   = open ? 'block' : 'none';
+        chev.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
+    }
+
+    function toggleDetail(uid) {
+        const detail = document.getElementById(`detail-${uid}`);
+        const chev   = document.getElementById(`chev-${uid}`);
+        const open   = detail.style.display === 'none';
+        detail.style.display = open ? 'block' : 'none';
+        chev.style.transform  = open ? 'rotate(90deg)' : 'rotate(0deg)';
+    }
+</script>
+
+</body>
+</html>
