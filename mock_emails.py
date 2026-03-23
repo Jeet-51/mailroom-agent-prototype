@@ -139,4 +139,51 @@ Thanks,
 Intake Team
 """
     },
+
+    # ── 007 Explicit — Deposition notice, 3 weeks out (MEDIUM) ───────────────
+    {
+        "id": "email_007",
+        "from": "opposing.counsel@defenderslaw.com",
+        "to": "michael@ourfirm.com",
+        "subject": "Deposition Notice - Plaintiff Chen - April 14, 2026",
+        "date": "2026-03-23",
+        "body": """
+Dear Michael,
+
+Please be advised that the deposition of your client, Kevin Chen,
+has been scheduled for April 14, 2026 at 10:00 AM at our offices
+at 200 State Street, Suite 400.
+
+Please confirm your client's availability and ensure he brings
+any documents referenced in our prior discovery requests.
+
+Regards,
+David Kim
+Defenders Law Group
+"""
+    },
+
+    # ── 008 Implicit — Demand letter follow-up, 2-week soft deadline (MEDIUM) ─
+    {
+        "id": "email_008",
+        "from": "adjuster@statewideclaims.com",
+        "to": "sarah@ourfirm.com",
+        "subject": "Re: Demand Letter - Patel v. Statewide Insurance",
+        "date": "2026-03-23",
+        "body": """
+Dear Sarah,
+
+We have reviewed your demand letter dated March 9, 2026 in the above matter.
+
+Our claims team is currently evaluating the supporting medical documentation.
+We expect to have a response to your demand within the next two weeks.
+
+If we do not respond by that time, please feel free to follow up.
+
+Regards,
+Robert Nguyen
+Senior Claims Adjuster
+Statewide Insurance
+"""
+    },
 ]
