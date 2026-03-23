@@ -4,6 +4,9 @@ AI-powered legal email processor for personal injury law firms. Reads emails, ex
 
 Built with: Claude API, FastAPI, Gmail API, Anthropic SDK
 
+**Live demo (mock emails):** https://mailroom-agent-prototype.onrender.com
+Click Mock Emails → Run Agent. No login needed.
+
 ---
 
 ## The Problem
