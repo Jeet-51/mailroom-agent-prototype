@@ -73,7 +73,7 @@ Runs Extractor and Action agents across all emails in parallel using `asyncio.ga
 
 ## Screenshots
 
-### Demo Mode - All 6 Legal Use Cases
+### Demo Mode - All 8 Legal Use Cases
 
 | Email | Use Case | Deadline Type |
 |---|---|---|
@@ -83,10 +83,12 @@ Runs Extractor and Action agents across all emails in parallel using `asyncio.ga
 | Motion for Summary Judgment, Davis v. City | 21-day court rule | Implicit |
 | HIPAA authorization, Johnson case | Hard deadline | Explicit |
 | Malpractice intake, Rivera | 2-year SOL | Implicit |
+| Deposition notice, Chen | Scheduled proceeding | Explicit |
+| Demand letter follow-up, Patel v. Statewide | Insurer response window | Implicit |
 
 <img width="1881" height="935" alt="image" src="https://github.com/user-attachments/assets/abb1201f-46b8-4d1c-bfe5-0f531e6ebaa5" />
 
-Act Today 6, 6 HIGH urgency. All 6 flagged correctly.
+Act Today 6, This Week 2, 6 HIGH urgency. All 8 flagged correctly.
 
 The Rivera case is the clearest example of implicit reasoning. Surgery date was March 3, 2024. No deadline is mentioned anywhere in the email. The agent calculated the 2-year statute of limitations expiry on its own and flagged it as Act Today.
 
@@ -134,7 +136,7 @@ MSJ opposition:
 | Pre-filter | Block emails missing legal keywords vs block only confirmed spam | Block only confirmed spam | Missing a real legal deadline is malpractice. Better to send one extra email to Claude than to silently drop something important |
 | Processing | Sequential email processing vs parallel | Parallel with asyncio.gather | A legal team gets many emails at once. Sequential processing would make the tool too slow to be useful in practice |
 
-Roughly $0.01 per run for 6 emails. Email ID cache skips already-processed messages on repeat runs.
+Roughly $0.01 per run for 8 emails. Email ID cache skips already-processed messages on repeat runs.
 
 ---
 
