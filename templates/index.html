@@ -37,6 +37,7 @@
     </div>
 
     <div id="gmailStatus" style="margin-left:auto;"></div>
+    <button onclick="clearCache()" style="margin-left:8px; padding:6px 12px; font-size:12px; border:1px solid #ccc; border-radius:6px; background:#fff; cursor:pointer; color:#666;">Clear Cache</button>
 </div>
 
 <div class="main">
@@ -83,6 +84,13 @@
 
     const PRIORITY_ORDER = { "Act Today": 0, "This Week": 1, "Monitor": 2 };
     const URGENCY_ORDER  = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+
+    async function clearCache() {
+        await fetch('/cache/clear', { method: 'POST' });
+        document.getElementById('status').textContent = 'Cache cleared. Run Agent to reprocess.';
+        document.getElementById('statsBar').style.display = 'none';
+        document.getElementById('todoList').innerHTML = '';
+    }
 
     async function runAgent() {
         const btn    = document.getElementById('runBtn');

@@ -126,15 +126,17 @@ async def run_pipeline(use_gmail: bool = False, hours: int = 4) -> list:
     skipped_spam = total - len(legal_emails)
     print(f"Pre-filter: {len(legal_emails)} legal / {skipped_spam} skipped (non-legal)")
 
-    # Step 3: Cache check
-    new_emails = [e for e in legal_emails if not is_processed(e["id"])]
-    cached_count = len(legal_emails) - len(new_emails)
-    print(f"Cache: {len(new_emails)} new / {cached_count} already processed")
-
-    if not new_emails:
-        print("All emails already processed. Returning cached results.")
-        # Return empty — UI shows "no new emails"
-        return []
+    # Step 3: Cache check (skip for mock emails — they never change)
+    if use_gmail:
+        new_emails = [e for e in legal_emails if not is_processed(e["id"])]
+        cached_count = len(legal_emails) - len(new_emails)
+        print(f"Cache: {len(new_emails)} new / {cached_count} already processed")
+        if not new_emails:
+            print("All emails already processed. Returning cached results.")
+            return []
+    else:
+        new_emails = legal_emails
+        print(f"Mock mode: processing all {len(new_emails)} emails")
 
     # Step 4: Extractor Agent (parallel)
     print(f"Extractor Agent: processing {len(new_emails)} emails in parallel...")
