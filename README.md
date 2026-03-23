@@ -91,7 +91,7 @@ The Rivera case is the clearest example of implicit reasoning. Surgery date was 
 ---
 
 ### Real Gmail - Live Inbox
-
+![image.png](attachment:f730bd37-30a3-4058-a2a0-d1e562762184:image.png)
 ![Real Gmail Demo](screenshots/real_gmail.png)
 
 Gmail OAuth connected. Agent fetched the real inbox, filtered marketing emails into Monitor, and surfaced Act Today items including the Motion for Summary Judgment with FRCP Rule 56 reasoning and the 21-day calculation shown inline.
