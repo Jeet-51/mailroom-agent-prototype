@@ -80,7 +80,8 @@ Runs Extractor and Action agents across all emails in parallel using `asyncio.ga
 | HIPAA authorization, Johnson case | Hard deadline | Explicit |
 | Malpractice intake, Rivera | 2-year SOL | Implicit |
 
-![Mock Emails Demo](screenshots/mock_emails.png)
+![Mock Emails Demo](<img width="1881" height="935" alt="image" src="https://github.com/user-attachments/assets/a154bef1-2404-41a2-bd04-9eabbe748a9b" />
+)
 
 Act Today 6, 6 HIGH urgency. All 6 flagged correctly.
 
